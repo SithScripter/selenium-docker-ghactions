@@ -1,0 +1,44 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to main branch
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Set up JDK 21 (matching your Dockerfile)
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'  # BellSoft Liberica isn’t directly supported, but Temurin is a good alternative
+
+      # Build JAR with Maven
+      - name: Build JAR with Maven
+        run: mvn clean package -DskipTests
+
+      # Set up Docker Buildx for building the image
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      # Build and push Docker image
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t gaumji19/selenium:latest .
+          docker tag gaumji19/selenium:latest gaumji19/selenium:${{ github.run_number }}
+          docker push gaumji19/selenium:latest
+          docker push gaumji19/selenium:${{ github.run_number }}
