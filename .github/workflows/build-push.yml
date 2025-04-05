@@ -42,3 +42,13 @@ jobs:
           docker tag gaumji19/selenium:latest gaumji19/selenium:${{ github.run_number }}
           docker push gaumji19/selenium:latest
           docker push gaumji19/selenium:${{ github.run_number }}
+
+      # Trigger Repo B to run tests
+      - name: Trigger Selenium Tests in Runner Repo
+        env:
+          GH_TOKEN: ${{ secrets.REPO_B_PAT }}  # A fine-grained GitHub PAT stored in secrets
+        run: |
+          curl -X POST https://api.github.com/repos/SithScripter/selenium-docker-runner-ghactions/dispatches \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: token $GH_TOKEN" \
+          -d '{"event_type": "run-tests", "client_payload": { "browser": "chrome" }}'
